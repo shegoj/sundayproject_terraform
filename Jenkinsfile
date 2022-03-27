@@ -7,9 +7,29 @@ pipeline {
                 CURRENT_BRANCH = "${env.BRANCH_NAME == "wip" ? "dev" : env.BRANCH_NAME}"
     }
     stages {
-        stage ('terraform code validation for dev or wip') {
+        stage ('terraform validate') {
             steps  {
-                sh 'echo ${CURRENT_BRANCH}'
+                echo 'about to perform code validation'
+                sh 'terraform init --backend-config="key=${CURRENT_BRANCH}/terraform.tfstate"'
+                sh 'terraform validate'
+            }
+        }
+        stage ('terraform plan') {
+            steps  {
+                echo 'about to perform terraform plan'
+                sh 'terraform plan -var-file=${CURRENT_BRANCH}.tfvars'
+            }
+        }
+        stage ('terraform apply') {
+            when {
+                anyOf {
+                    branch 'prod';
+                    branch 'staging'
+                }
+            }
+            steps  {
+                echo 'about to perform terraform apply....'
+                sh 'terraform apply -var-file=${CURRENT_BRANCH}.tfvars -auto-approve'
             }
         }
     }
