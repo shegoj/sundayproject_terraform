@@ -6,8 +6,14 @@ pipeline {
                 AWS_REGION = 'eu-west-1'
     }
     stages {
-        stage ('terraform code validation') {
-  
+        stage ('terraform code validation for dev or wip') {
+        
+        when {
+            anyOf {
+                branch 'wip';
+                branch 'dev'
+            }
+        }
             steps  {
                 echo 'about to perform code validation'
                 sh 'printenv'
@@ -15,12 +21,43 @@ pipeline {
                 sh 'terraform validate'
             }
         }
-        
-        stage ('terraform plan') {
-            steps {
-                sh 'terraform plan -var-file=dev.tfvars'  
+        stage ('terraform code validation for prod') {
+        when  {
+            branch 'prod'
+        }
+            steps  {
+                echo 'about to perform code validation'
+                sh 'printenv'
+                sh 'terraform init --backend-config="key=production/terraform.tfstate"'
+                sh 'terraform validate'
+            }
+        }   
+
+        stage ('terraform plan for dev or wip') {
+          when {
+            anyOf {
+                branch 'wip';
+                branch 'dev'
             }
         }
+            steps {
+                sh 'terraform plan -var-file=dev.tfvars'  
+                echo 'terraform plan ${BRANCH_NAME}'
+            }
+        }
+    
+    stage ('terraform plan for prod') {
+          when {
+            anyOf {
+                branch 'prod';
+            }
+        }
+            steps {
+                sh 'terraform plan -var-file=prod.tfvars'  
+            }
+        }
+
+    
     }
     
     post {
