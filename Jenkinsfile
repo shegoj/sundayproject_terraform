@@ -24,7 +24,7 @@ pipeline {
             when {
                 anyOf {
                     branch 'prod';
-                    branch 'staging'
+                    branch 'dev'
                 }
             }
             steps  {
