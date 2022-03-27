@@ -42,7 +42,7 @@ pipeline {
         }
             steps {
                 sh 'terraform plan -var-file=dev.tfvars'  
-                echo 'terraform plan ${BRANCH_NAME}'
+                echo "terraform plan ${BRANCH_NAME}"
             }
         }
     
